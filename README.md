@@ -28,7 +28,7 @@ in sync with your latest monitor arrangement.
 
 ## Installation
 ```bash
-git clone https://github.com/MiladBahrlo/gdm-monitor-fix.git
+git clone https://github.com/MiladBhrlo/gdm-monitor-fix.git
 cd gdm-monitor-fix
 chmod +x install.sh
 sudo ./install.sh
