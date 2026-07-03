@@ -1,36 +1,44 @@
 # GDM Multi-Monitor Fix
 
-زمانی که دو کارت گرافیک (مثلاً iGPU مادربرد + GPU مجزا) داری،
-صفحهٔ ورود (GDM) ممکن است روی مانیتور اشتباه بیفتد یا سیاه بماند.
-این پروژه اسکریپت‌هایی دارد که این مشکل را برای همیشه حل می‌کنند.
+Fixes the GDM login screen appearing on the wrong monitor or staying black
+when using both an integrated GPU (iGPU) and a discrete GPU (dGPU).
 
-## مشکل
-- GDM فیلد ورود را روی نمایشگر iGPU می‌اندازد (که شاید سیاه باشد).
-- با جدا کردن یک کابل، فیلدها به مانیتور دیگر می‌پرند.
+## The Problem
+GDM may place the login dialog on the iGPU output while the dGPU monitor
+shows only a black screen with a cursor, or vice versa. Unplugging one
+monitor causes the dialog to jump around, but plugging both back makes
+the issue return.
 
-## راه‌حل
-- یک اسکریپت برای GDM که Primary را از فایل `monitors.xml` کاربر می‌خواند.
-- اگر آن مانیتور متصل نباشد، خودکار یک خروجی مناسب انتخاب می‌کند.
-- بقیهٔ خروجی‌ها را موقتاً خاموش می‌کند تا GDM فقط روی یک نمایشگر ظاهر شود.
-- بعد از ورود، چیدمان اصلی کاربر دوباره اعمال می‌شود.
+## The Solution
+A script that runs when GDM starts:
+- Reads your primary monitor from your user's `monitors.xml` settings.
+- If that monitor is disconnected, it automatically picks the best
+  available connected output (preferring VGA, HDMI, DP).
+- Turns off all other outputs so GDM always shows the login screen on
+  a single, correct monitor.
+- After login, your desktop uses your normal multi-monitor layout again.
 
-## پیش‌نیازها
-- توزیع مبتنی بر گنوم با GDM (اوبونتو، Zorin، Pop!_OS و غیره)
-- GDM باید روی Xorg باشد (Wayland غیرفعال شود) – اسکریپت نصب خودش این کار را می‌کند.
-- `xrandr` (به‌طور پیش‌فرض روی این توزیع‌ها وجود دارد)
+A companion user script, run via autostart, keeps GDM's configuration
+in sync with your latest monitor arrangement.
 
-## نصب (روی سیستم مقصد)
+## Requirements
+- A GNOME-based distro with GDM (Ubuntu, Zorin OS, Pop!_OS, etc.)
+- GDM must use Xorg (Wayland disabled) — the installer does this for you.
+- `xrandr` (installed by default on these systems).
+
+## Installation
 ```bash
-git clone https://github.com/MiladBhrlo/gdm-monitor-fix.git
+git clone https://github.com/MiladBahrlo/gdm-monitor-fix.git
 cd gdm-monitor-fix
 chmod +x install.sh
 sudo ./install.sh
 ```
 
-پس از نصب، یک بار از سیستم خارج و دوباره وارد شو، سپس ریبوت کن.
+After installation, log out and back in, then reboot.
+On next boot, the login screen will appear on your preferred monitor.
 
-ساختار فایل‌ها
+Files
 
-· auto-monitor-setup.sh → اسکریپتی که هنگام بالا آمدن GDM اجرا می‌شود و مانیتورها را تنظیم می‌کند.
-· update-gdm-monitors.sh → توسط کاربر (با autostart) اجرا می‌شود و آخرین تنظیمات مانیتور را به GDM کپی می‌کند.
-· install.sh → تمام مراحل نصب را خودکار انجام می‌دهد.
+· auto-monitor-setup.sh   – runs at GDM startup to configure outputs.
+· update-gdm-monitors.sh  – copies your monitor settings to GDM on every login.
+· install.sh              – automated installer.
